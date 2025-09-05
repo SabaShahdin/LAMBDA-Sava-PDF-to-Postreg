@@ -1,0 +1,76 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: invoker-sa
+  namespace: lambda-lab
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: lambda-lab
+  name: invoker-role
+rules:
+  - apiGroups: ["batch"]
+    resources: ["jobs"]
+    verbs: ["create","get","list","watch"]
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get","list","watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: invoker-rb
+  namespace: lambda-lab
+subjects:
+  - kind: ServiceAccount
+    name: invoker-sa
+    namespace: lambda-lab
+roleRef:
+  kind: Role
+  name: invoker-role
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: invoker
+  namespace: lambda-lab
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: invoker }
+  template:
+    metadata:
+      labels: { app: invoker }
+    spec:
+      serviceAccountName: invoker-sa
+      containers:
+        - name: invoker
+          image: lambda-invoker:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: NAMESPACE
+              value: lambda-lab
+            - name: DB_HOST
+              value: postgres
+          ports:
+            - containerPort: 8000
+          volumeMounts:
+            - name: uploads
+              mountPath: /uploads
+      volumes:
+        - name: uploads
+          persistentVolumeClaim:
+            claimName: uploads-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: invoker
+  namespace: lambda-lab
+spec:
+  selector: { app: invoker }
+  ports:
+    - port: 8000
+      targetPort: 8000
