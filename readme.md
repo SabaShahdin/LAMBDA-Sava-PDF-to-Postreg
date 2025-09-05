@@ -40,10 +40,11 @@ LAMBDA-LAB/
 
 ```mermaid
 flowchart LR
-    A[Frontend (Nginx)] -->|HTTP Upload| B[Invoker Service]
-    B -->|Writes file path| C[Worker Service]
-    C -->|Stores file content| D[(PostgreSQL)]
-    C -->|Optional logs/events| E[MinIO / Observability]
+    A[Frontend (Nginx)] -->|HTTPUpload| B[Invoker Service]
+    B -->|WritesFilePath| C[Worker Service]
+    C -->|StoresFileContent| D[(PostgreSQL)]
+    C -->|OptionalLogsEvents| E[MinIO / Observability]
+
 ```
 
 **Description:**
@@ -193,3 +194,4 @@ jobs:
 * [Docker Documentation](https://docs.docker.com/)
 * [Kubernetes Documentation](https://kubernetes.io/docs/)
 * [PostgreSQL BYTEA Storage](https://www.postgresql.org/docs/current/datatype-binary.html)
+
